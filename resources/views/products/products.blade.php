@@ -292,7 +292,7 @@
         function editFunc(id) {
             $.ajax({
                 type: "POST",
-                url: "{{ url('edit-customer') }}",
+                url: "{{ url('edit-product') }}",
                 data: {
                     id: id
                 },
@@ -301,9 +301,9 @@
                     $('#CustomerModal').html("Edit Product");
                     $('#customer-modal').modal('show');
                     $('#id').val(res.id);
-                    $('#name').val(res.name);
-                    $('#email').val(res.email);
-                    $('#phone').val(res.phone);
+                    $('#title').val(res.title);
+                    $('#description').val(res.description);
+                    $('#price').val(res.price);
                     if (res.currency === "INR")
                         $('#currencyinput').find(':radio[name=currency][value="INR"]').prop('checked', true);
                     else if(res.currency === "USD")
