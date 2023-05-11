@@ -30,6 +30,11 @@ Route::post('store-product', [ProductsController::class, 'store'])->middleware('
 Route::post('edit-product', [ProductsController::class, 'edit'])->middleware('auth','admin');
 Route::post('delete-product', [ProductsController::class, 'destroy'])->middleware('auth','admin');
 
+Route::get('load-product-list', [ProductsController::class, 'load_product_list'])->name('user.products.index')->middleware('auth');
+
+
+Route::get('user-products-list', [ProductsController::class, 'product_index'])->name('user.products')->middleware('auth');
+
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');

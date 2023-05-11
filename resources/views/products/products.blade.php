@@ -111,6 +111,18 @@
                                     placeholder="Enter price" maxlength="12" required="">
                             </div>
                         </div>
+                        @php
+                            $category = App\Models\Category::get();
+                        @endphp
+                        <div class="form-group">
+                            <label for="category_id" class="col-sm-2 control-label">Category</label>
+                                <select name="category_id" id="sel_category" class="form-control category">
+                                    <option value=''>-- Select Category --</option>
+                                        @foreach($category as $cat)
+                                            <option value="{{ $cat->id }}">{{ $cat->title }}</option>
+                                        @endforeach
+                                </select>
+                        </div>
                          <div class="form-group">
                             <div id='currencyinput'>
                                     <label>Currency (Select Any one)</label><br>
@@ -165,7 +177,7 @@
                 },
                 columns: [{
                         data: 'id',
-                        name: 'id', 
+                        name: 'id',
                         visible: false,
                         defaultContent:"-"
                     },
@@ -177,6 +189,14 @@
                     {
                         data: 'image',
                         name: 'image',
+                        render: function(data, type, row ){
+                            if(data != null){
+                                var path = '/uploads/product_image/'+ data;
+                            }else{
+                                var path = '/uploads/product_image/no-image.jpg';
+                            }
+                            return '<img src='+path+' border="0" width="100" align="center" />';
+                        },
                         defaultContent:"-"
                     },
                     {
@@ -196,26 +216,26 @@
                         data: 'price',
                         name: 'price',
                         render: function(data, type, row) {
-                            
-                            console.log(row.currency);
-                            if(row.currency == 'INR')
-                                return Number(data).toLocaleString('en-IN', {
-                                    maximumFractionDigits: 2,
-                                    style: 'currency',
-                                    currency: 'INR'
-                                });
-                            else if(row.currency == 'USD')
-                                return Number(data).toLocaleString('en-IN', {
-                                    maximumFractionDigits: 2,
-                                    style: 'currency',
-                                    currency: 'USD'
-                                });
-                            else if(row.currency == 'EURO')
-                                return Number(data).toLocaleString('en-IN', {
-                                    maximumFractionDigits: 2,
-                                    style: 'currency',
-                                    currency: 'EURO'
-                                });
+                            return data;
+                            // console.log(row.currency);
+                            // if(row.currency == 'INR')
+                            //     return Number(data).toLocaleString('en-IN', {
+                            //         maximumFractionDigits: 2,
+                            //         style: 'currency',
+                            //         currency: 'INR'
+                            //     });
+                            // else if(row.currency == 'USD')
+                            //     return Number(data).toLocaleString('en-IN', {
+                            //         maximumFractionDigits: 2,
+                            //         style: 'currency',
+                            //         currency: 'USD'
+                            //     });
+                            // else if(row.currency == 'EURO')
+                            //     return Number(data).toLocaleString('en-IN', {
+                            //         maximumFractionDigits: 2,
+                            //         style: 'currency',
+                            //         currency: 'EURO'
+                            //     });
                         },
                         defaultContent:"-"
                     },
@@ -285,23 +305,23 @@
                     $('#email').val(res.email);
                     $('#phone').val(res.phone);
                     if (res.currency === "INR")
-                        $('#currencyinput').find(':radio[name=currency][value="INR"]').prop('checked', true);        
+                        $('#currencyinput').find(':radio[name=currency][value="INR"]').prop('checked', true);
                     else if(res.currency === "USD")
-                        $('#currencyinput').find(':radio[name=currency][value="USD"]').prop('checked', true);     
+                        $('#currencyinput').find(':radio[name=currency][value="USD"]').prop('checked', true);
                     else if(res.currency === "EURO")
-                        $('#currencyinput').find(':radio[name=currency][value="EURO"]').prop('checked', true);         
+                        $('#currencyinput').find(':radio[name=currency][value="EURO"]').prop('checked', true);
 
                     if (res.role == "admin")
-                        $('#roleInput').find(':radio[name=role][value="admin"]').prop('checked', true);        
+                        $('#roleInput').find(':radio[name=role][value="admin"]').prop('checked', true);
                     else if(res.role == "user")
-                        $('#roleInput').find(':radio[name=role][value="user"]').prop('checked', true);     
-                    
+                        $('#roleInput').find(':radio[name=role][value="user"]').prop('checked', true);
+
                     if (res.status == 1)
-                        $('#statusInput').find(':radio[name=status][value=1]').prop('checked', true);        
+                        $('#statusInput').find(':radio[name=status][value=1]').prop('checked', true);
                     else if(res.status == 2)
-                        $('#statusInput').find(':radio[name=status][value=2]').prop('checked', true);     
+                        $('#statusInput').find(':radio[name=status][value=2]').prop('checked', true);
                 }
-                    
+
             });
         }
 

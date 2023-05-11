@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Products;
+use App\Models\Category;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use AmrShawky\LaravelCurrency\Facade\Currency;
 use Datatables;
@@ -43,6 +46,7 @@ class ProductsController extends Controller
             'title' => 'required',
             'image' => 'required',
             'description' => 'required',
+            'category_id' => 'category_id',
             'price' => 'required',
             'currency' => 'required',
             'in_stock' => 'required',
@@ -55,14 +59,7 @@ class ProductsController extends Controller
             $image_file_path = '/uploads/product_image/'.$image_file_name;
             $imageName = $image_file_name;
         }
-        
-        if($request->currency == 'INR'){
-            $new_price = Currency::convert()->to('INR')->amount($request->currency)->get();
-        }elseif ($request->currency == 'USD') {
-            $new_price = Currency::convert()->to('USD')->amount($request->currency)->get();
-        }else{
-            $new_price = Currency::convert()->to('EURO')->amount($request->currency)->get();
-        }
+
         $customer = Products::updateOrCreate(
             [
                 'id' => $product_id
@@ -70,8 +67,9 @@ class ProductsController extends Controller
             [
                 'category_id' => $request->category_id ?? '1',
                 'title' => $request->title ?? '',
-                'price' => $new_price ?? '',
+                'price' => $request->price?? '',
                 'currency' =>  $request->currency ?? '',
+                'category_id' => $request->category_id ?? '',
                 'image' => $imageName ?? '',
                 'description' => $request->description ?? '',
                 'in_stock' => $request->in_stock ?? '',
@@ -96,5 +94,76 @@ class ProductsController extends Controller
         $customer = Products::where('id', $request->id)->delete();
 
         return Response()->json($customer);
+    }
+
+    public function load_product_list(Request $request){
+        return view('products.product-list');
+    }
+    public function product_index(Request $request){
+        try {
+            $searchParams = $request->all();
+            $products = Products::query()->where('status',"=",1)->where('in_stock',1)->get();
+            if(isset($searchParams['searchCategory']) && $searchParams['searchCategory'] != '' || $searchParams['searchCategory'] != null){
+                $products = Products::where('status',"=",1)->where('category_id','=',$searchParams['searchCategory'])->where('in_stock',1)->get();
+            }elseif(isset($searchParams['searchProduct']) && $searchParams['searchProduct'] != '' || $searchParams['searchProduct'] != null){
+                $products = Products::where('title','like','%'.$searchParams['searchProduct'].'%')->get();
+            }
+            if(isset($searchParams['searchCurrency']) && $searchParams['searchCurrency'] != null || $searchParams['searchCurrency'] != ''){
+                foreach ($products as $product){
+                    $formattedValue = '';
+                    if($searchParams['searchCurrency'] == 'USD'){
+                        $inrValue = $product->price;
+                        $conversionRate = 0.012;
+                        $usdValue = $inrValue * $conversionRate;
+                        $formattedValue = self::asDollars($usdValue);
+                        $product->price = $formattedValue;
+                    }elseif ($searchParams['searchCurrency'] == 'EURO'){
+                        $inrValue = $product->price;
+                        $conversionRate = 0.011;
+                        $euroValue = $inrValue * $conversionRate;
+                        $formattedValue = self::asEURO($euroValue);
+                        $product->price = $formattedValue;
+                    }elseif ($searchParams['searchCurrency'] == 'INR'){
+                        $formattedValue = self::asRupee($product->price);
+                        $product->price = $formattedValue;
+                    }
+                }
+            }else{
+                foreach ($products as $product){
+                $formattedValue = '';
+                    if(Auth::user()->currency == 'USD'){
+                        $inrValue = $product->price;
+                        $conversionRate = 0.012;
+                        $usdValue = $inrValue * $conversionRate;
+                        $formattedValue = self::asDollars($usdValue);
+                        $product->price = $formattedValue;
+                    }elseif (Auth::user()->currency == 'EURO'){
+                        $inrValue = $product->price;
+                        $conversionRate = 0.011;
+                        $euroValue = $inrValue * $conversionRate;
+                        $formattedValue = self::asEURO($euroValue);
+                        $product->price = $formattedValue;
+                    }elseif (Auth::user()->currency == 'INR'){
+                        $formattedValue = self::asRupee($product->price);
+                        $product->price = $formattedValue;
+                    }
+                }
+            }
+            return Response()->json($products);
+        }catch(\Exception $ex){
+            dd($ex);
+        }
+    }
+    function asRupee($value) {
+        if ($value<0) return "-".asRupee(-$value);
+        return '₹' . number_format($value, 2);
+    }
+    function asDollars($value) {
+        if ($value<0) return "-".asDollars(-$value);
+        return '$' . number_format($value, 2);
+    }
+    function asEURO($value) {
+        if ($value<0) return "-".asEURO(-$value);
+        return '€' . number_format($value, 2);
     }
 }

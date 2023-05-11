@@ -14,7 +14,7 @@
                             </div>
                         @endif
 
-                        
+
                         <div>
                             @if(Auth::user()->role == "admin")
                                 {{ __('You are logged in as Admin!') }}<br>
@@ -22,7 +22,7 @@
                                 Go to: <a href="/admin-products-list">Products List</a>
                             @elseif (Auth::user()->role == "user")
                             {{ __('You are logged in as Customer / User!') }}<br>
-                                Go to: <a href="#">Product</a>
+                                Go to: <a href="/load-product-list">Product</a>
                             @endif
                         </div>
                     </div>
